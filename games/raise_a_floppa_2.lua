@@ -133,7 +133,12 @@ return function(ctx)
             pcall(function() connection:Disconnect() end)
         end
         table.clear(fishing.notifyConnections)
-        table.clear(fishing.watchedSounds)
+        for sound, hooks in pairs(fishing.watchedSounds) do
+            for _, connection in ipairs(hooks) do
+                pcall(function() connection:Disconnect() end)
+            end
+            fishing.watchedSounds[sound] = nil
+        end
         restoreAnchor()
         if fishing.autoMinimized and not ctx.Window.destroyed then
             ctx.Window:SetMinimized(false)
@@ -203,13 +208,20 @@ return function(ctx)
     local function watchSound(instance)
         if not instance:IsA("Sound") or instance.Name ~= "Notify" then return end
         if fishing.watchedSounds[instance] then return end
-        fishing.watchedSounds[instance] = true
-
-        table.insert(fishing.notifyConnections, instance.Played:Connect(onNotify))
-        table.insert(fishing.notifyConnections,
-            instance:GetPropertyChangedSignal("Playing"):Connect(function()
-                if instance.Playing then onNotify() end
-            end))
+        local hooks = {}
+        fishing.watchedSounds[instance] = hooks
+        hooks[1] = instance.Played:Connect(onNotify)
+        hooks[2] = instance:GetPropertyChangedSignal("Playing"):Connect(function()
+            if instance.Playing then onNotify() end
+        end)
+        -- Dynamically created Notify sounds may be destroyed after every cast.
+        -- Release their hooks immediately rather than accumulating records.
+        hooks[3] = instance.Destroying:Connect(function()
+            for _, connection in ipairs(hooks) do
+                pcall(function() connection:Disconnect() end)
+            end
+            fishing.watchedSounds[instance] = nil
+        end)
     end
 
     local function listenForNotify()
