@@ -1,8 +1,8 @@
--- humuhumunukunukuapuaaHub | loader v0.2.1-alpha
+-- humuhumunukunukuapuaaHub | loader v0.2.2-alpha
 -- Main public entry point for Lua environments supporting game:HttpGet + loadstring.
 -- This loader never guesses IDs or runs a game module on an unsupported experience.
 
-local HUB_VERSION = "0.2.1-alpha"
+local HUB_VERSION = "0.2.2-alpha"
 local BASE = "https://raw.githubusercontent.com/d4nkduck/humuhumunukunukuapuaaHub/main/"
 local REEFFISH_URL = "https://raw.githubusercontent.com/d4nkduck/reefFish-UI-Lib/main/dist/reefFish-v0.3.lua"
 
@@ -57,7 +57,7 @@ local function launch()
     local gameId, placeId = game.GameId, game.PlaceId
     log("Checking GameId=" .. tostring(gameId) .. " PlaceId=" .. tostring(placeId))
 
-    local registry = loadHubFile("registry-v021.lua")
+    local registry = loadHubFile("registry-v022.lua")
     local entry, matchedBy = getEntry(registry, gameId, placeId)
     if entry then
         assert(type(entry) == "table" and type(entry.Module) == "string", "Invalid registry entry")
