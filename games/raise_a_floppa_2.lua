@@ -329,6 +329,43 @@ return function(ctx)
         end
     })
 
+    tab:CreateButton({
+        Name = "Check Fishing Setup",
+        Callback = function()
+            local char = player.Character
+            local rod = findRod(selectedRod(), char)
+            local rodStatus = rod and ("FOUND (" .. (rod.Parent == char and "equipped" or "Backpack") .. ")") or "MISSING"
+            local soundCount = 0
+            local seen = {}
+            for _, container in ipairs({
+                workspace, SoundService, backpack,
+                player:WaitForChild("PlayerGui"),
+                game:GetService("ReplicatedStorage")
+            }) do
+                for _, instance in ipairs(container:GetDescendants()) do
+                    if instance:IsA("Sound") and instance.Name == "Notify" and not seen[instance] then
+                        seen[instance] = true
+                        soundCount += 1
+                        print("[HumuHub/Floppa2] Notify sound:", instance:GetFullName())
+                    end
+                end
+            end
+            if char then
+                for _, instance in ipairs(char:GetDescendants()) do
+                    if instance:IsA("Sound") and instance.Name == "Notify" and not seen[instance] then
+                        seen[instance] = true
+                        soundCount += 1
+                        print("[HumuHub/Floppa2] Notify sound:", instance:GetFullName())
+                    end
+                end
+            end
+            note("Rod: " .. rodStatus .. " | Existing Notify sounds: " .. soundCount, rod and "OK" or "WARN")
+            if soundCount == 0 then
+                print("[HumuHub/Floppa2] Notify may be created dynamically when casting.")
+            end
+        end
+    })
+
     fishToggle = tab:CreateToggle({
         Name = "Auto Fish",
          Default = false,
