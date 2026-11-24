@@ -57,7 +57,7 @@ The module listens for `Sound` instances **named exactly `Notify`** (including T
 
 Turning Auto Fish **off** cancels its loop, disconnects sound listeners, and restores the character's original `HumanoidRootPart.Anchored` state. Character loss or missing rod also stops the loop. The interface minimizes itself on start so automated centre-screen clicks do not hit the console; reopen the console using its title bar to switch the toggle off. The normal `RightShift` shortcut is still available.
 
-**Troubleshooting:** A **Check Fishing Setup** button reports whether the requested rod exists and prints paths of currently found `Notify` sounds to the output console. Actual game internals and the exact executor input functions have not been verified; the module tries VirtualInputManager centre-click, optionally uses `mousemoveabs` with `mouse1click`, and finally attempts `Tool:Activate()`. No click method is guaranteed to work in every runtime.
+**Troubleshooting:** A **Check Fishing Setup** button reports whether the requested rod exists and prints paths of currently found `Notify` sounds to the output console. Actual game internals and the exact executor input functions have not been verified; the module tries VirtualInputManager centre-click, optionally uses `mousemoveabs` with `mouse1click`, also tries `VirtualUser` when available, and finally attempts `Tool:Activate()`. No click method is guaranteed to work in every runtime.
 
 ### No Meteors
 
