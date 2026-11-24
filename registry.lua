@@ -20,6 +20,9 @@ return {
         -- [YOUR_REAL_UNIVERSE_ID] = {Name="My Game", Module="games/_template.lua"},
     },
     Places = {
-        -- [YOUR_REAL_PLACE_ID] = {Name="My Place", Module="games/_template.lua"},
+        [9772878203] = {
+            Name = "Raise a Floppa 2",
+            Module = "games/raise_a_floppa_2.lua"
+        },
     }
 }
