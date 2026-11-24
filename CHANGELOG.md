@@ -1,5 +1,11 @@
 # Changelog
 
+## Fishing anti-move update
+
+- Replace root anchoring with BodyPosition and BodyGyro physics hold
+- Restore previous anchored state and remove forces when Auto Fish stops
+- Keep Y = 70 and the universal loader unchanged
+
 ## Universal loader consolidation
 
 - Permanent, unchanged entry point: `loader.lua`
