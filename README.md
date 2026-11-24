@@ -37,7 +37,7 @@ Only the **three primary routing paths** matter when updating game support: `loa
 
 - **Auto Fish:** choose Fishing Rod, Golden Fishing Rod or Diamond Fishing Rod (must be in inventory), then enable the toggle
 - Fishing position: **(-25, 70, 22)** with the configured orientation
-- The interface stays open while fishing; disabling stops the routine and restores anchoring
+- The interface stays open while fishing. A physics-based position/rotation hold keeps the character unanchored; disabling Auto Fish removes the hold.
 - **No Meteors:** local filter for matching meteor MeshParts
 - **Check Fishing Setup:** reports whether the rod and `Notify` sound can be found
 
