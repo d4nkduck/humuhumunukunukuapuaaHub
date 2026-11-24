@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1-alpha — Fishing position and cache-bypass hotfix
+
+- Keep the hub visible when Auto Fish starts; no automatic minimizing
+- Move fishing position two studs lower to (-25, 74, 22)
+- Shorten user-facing explanations in the game tab
+- Publish fresh loader, registry and game module filenames so previously cached files are not reused
+- Display `FLOPPA 2 | v0.2.1` in the game tab as a visible build check
+
 ## 0.2.0-alpha — First supported game: Raise a Floppa 2
 
 - Register exact PlaceId `9772878203` (no universe-wide wildcard).
