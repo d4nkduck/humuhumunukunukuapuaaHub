@@ -208,9 +208,13 @@ return function(ctx)
     local function listenForNotify()
         -- Existing sounds may be in the Tool, Workspace, PlayerGui or SoundService.
         -- We cannot assume a particular internal game hierarchy.
-        for _, container in ipairs({
-            workspace, SoundService, backpack, player:WaitForChild("PlayerGui")
-        }) do
+        local containers = {
+            workspace, SoundService, backpack,
+            player:WaitForChild("PlayerGui"),
+            game:GetService("ReplicatedStorage")
+        }
+        if player.Character then table.insert(containers, player.Character) end
+        for _, container in ipairs(containers) do
             for _, instance in ipairs(container:GetDescendants()) do
                 watchSound(instance)
             end
