@@ -34,8 +34,10 @@ return function(ctx)
         awaiting = false,
         castAt = 0,
         nextCastAt = 0,
-        anchoredRoot = nil,
-        originalAnchored = false,
+        heldRoot = nil,
+        previousAnchored = false,
+        positionForce = nil,
+        rotationForce = nil,
         notifyConnections = {},
         watchedSounds = {},
         lastNotifyAt = 0,
@@ -68,21 +70,63 @@ return function(ctx)
         return nil
     end
 
-    local function restoreAnchor()
-        if fishing.anchoredRoot and fishing.anchoredRoot.Parent then
-            fishing.anchoredRoot.Anchored = fishing.originalAnchored
+    -- Physics-based anti-move: BodyPosition holds the spot, BodyGyro
+    -- holds facing. The HumanoidRootPart stays UNANCHORED for tool animations.
+    local function releaseHold()
+        if fishing.positionForce then
+            fishing.positionForce:Destroy()
+            fishing.positionForce = nil
         end
-        fishing.anchoredRoot = nil
+        if fishing.rotationForce then
+            fishing.rotationForce:Destroy()
+            fishing.rotationForce = nil
+        end
+        if fishing.heldRoot and fishing.heldRoot.Parent then
+            fishing.heldRoot.Anchored = fishing.previousAnchored
+        end
+        fishing.heldRoot = nil
     end
 
-    local function anchorRoot(root)
-        if fishing.anchoredRoot ~= root then
-            restoreAnchor()
-            fishing.anchoredRoot = root
-            fishing.originalAnchored = root.Anchored
+    local function applyHold(root)
+        if fishing.heldRoot == root
+            and fishing.positionForce and fishing.positionForce.Parent
+            and fishing.rotationForce and fishing.rotationForce.Parent then
+            -- Keep the physics active even if another local script anchors us.
+            if root.Anchored then root.Anchored = false end
+            return
         end
-        root.Anchored = true
+
+        if fishing.heldRoot ~= root then
+            releaseHold()
+            fishing.heldRoot = root
+            fishing.previousAnchored = root.Anchored
+        else
+            if fishing.positionForce then fishing.positionForce:Destroy() end
+            if fishing.rotationForce then fishing.rotationForce:Destroy() end
+        end
+
         root.CFrame = FISHING_CFRAME
+        root.Anchored = false
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+
+        local position = Instance.new("BodyPosition")
+        position.Name = "HumuFishPosition"
+        position.Position = FISHING_CFRAME.Position
+        position.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+        position.P = 100000
+        position.D = 10000
+        position.Parent = root
+        fishing.positionForce = position
+
+        local rotation = Instance.new("BodyGyro")
+        rotation.Name = "HumuFishRotation"
+        rotation.CFrame = FISHING_CFRAME
+        rotation.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
+        rotation.P = 100000
+        rotation.D = 10000
+        rotation.Parent = root
+        fishing.rotationForce = rotation
     end
 
     local function clickCenter()
@@ -150,7 +194,7 @@ return function(ctx)
             end
             fishing.watchedSounds[sound] = nil
         end
-        restoreAnchor()
+        releaseHold()
         if fishToggle and fishToggle:Get() then fishToggle:Set(false) end
         fishing.stopping = false
         status("OFF")
@@ -164,9 +208,8 @@ return function(ctx)
         local tool = findRod(choice, char)
         if not tool then return false, choice .. " is not in Backpack or equipped" end
 
-        -- Save the original anchored state once, and put the player in the
-        -- intended fishing position and precise Euler-angle orientation.
-        anchorRoot(root)
+        -- Force-based hold rather than anchoring the character.
+        applyHold(root)
 
         local competingTool = false
         for _, child in ipairs(char:GetChildren()) do
@@ -287,8 +330,11 @@ return function(ctx)
 
             if otherEquipped or not (selected and selected:IsA("Tool")) then
                 if not resetRod("Re-equipping selected rod") then break end
-            elseif root ~= fishing.anchoredRoot or not root.Anchored then
-                anchorRoot(root)
+            elseif root ~= fishing.heldRoot
+                or not fishing.positionForce or not fishing.positionForce.Parent
+                or not fishing.rotationForce or not fishing.rotationForce.Parent
+                or root.Anchored then
+                applyHold(root)
             end
 
             local now = os.clock()
@@ -394,7 +440,7 @@ return function(ctx)
          Default = false,
         Callback = function(on)
             if on then startFishing()
-            else stopFishing("Auto Fish stopped; character unanchored", "INFO") end
+            else stopFishing("Auto Fish stopped", "INFO") end
         end
     })
 
