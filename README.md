@@ -1,6 +1,6 @@
 # humuhumunukunukuāpuaʻaHub 🐟
 
-**Version:** 0.2.0-alpha  
+**Version:** 0.2.1-alpha  
 **Type:** Game-aware Roblox Luau debugging hub  
 **UI library:** [reefFish UI Lib](https://github.com/d4nkduck/reefFish-UI-Lib) v0.3.0-alpha
 
@@ -25,13 +25,16 @@ The remote loading pattern is *not* supported by ordinary Roblox Studio LocalScr
 ```text
 humuhumunukunukuapuaaHub/
 ├── loader.lua                  # Public central entry point and error handling
-├── loader-v0.2.lua             # Version-specific loader for cache diagnosis
-├── registry.lua                # Experience/PlaceId routing table
+├── loader-v021.lua             # Fresh v0.2.1 loader (avoids old path caching)
+├── loader-v0.2.lua             # Previous loader build
+├── registry.lua                # Latest experience/PlaceId routing table
+├── registry-v021.lua           # Fresh routing file for v0.2.1
 ├── shared/
 │   └── bootstrap.lua          # ReefFish window, system tab and cleanup
 ├── games/
 │   ├── _template.lua          # Example debug module (not registered)
-│   └── raise_a_floppa_2.lua   # First registered game module
+│   ├── raise_a_floppa_2.lua   # Latest original game module
+│   └── raise_a_floppa_2_v021.lua  # Freshly named v0.2.1 module
 ├── examples/
 │   └── preview-template.lua   # Manually test template without registering a game
 └── README.md
@@ -40,8 +43,8 @@ humuhumunukunukuapuaaHub/
 ## Supported game: Raise a Floppa 2
 
 **PlaceId:** `9772878203`  
-**Module:** `games/raise_a_floppa_2.lua`  
-**Route:** `registry.lua → Places[9772878203]` (no experience-wide GameId rule)
+**Module:** `games/raise_a_floppa_2_v021.lua`  
+**Route:** `registry-v021.lua → Places[9772878203]` (no experience-wide GameId rule)
 
 ### Auto Fish
 
@@ -57,11 +60,11 @@ If fishing stalls, the module retries. Use **Check Fishing Setup** if the rod or
 
 ```lua
 loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/d4nkduck/humuhumunukunukuapuaaHub/main/loader-v0.2.lua"
+    "https://raw.githubusercontent.com/d4nkduck/humuhumunukunukuapuaaHub/main/loader-v021.lua"
 ))()
 ```
 
-Versioned URLs help distinguish this release from cached earlier loader content. Test on an authorized client and report the status label or output message if an action does not work.
+The v0.2.1 loader uses new paths for both the registry and Raise a Floppa 2 module to avoid stale GitHub raw-file caches. The game tab will read `FLOPPA 2 | v0.2.1`. Fishing stays visible (no automatic minimize), and the fishing height is `-25, 74, 22`.
 
 ## Game detection
 
