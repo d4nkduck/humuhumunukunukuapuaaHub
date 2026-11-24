@@ -45,27 +45,13 @@ humuhumunukunukuapuaaHub/
 
 ### Auto Fish
 
-The FLOPPA 2 tab contains a required rod-selection prompt and dropdown:
+Choose **Fishing Rod**, **Golden Fishing Rod**, or **Diamond Fishing Rod** from your inventory, then enable **Auto Fish**. Your character fishes at **(-25, 74, 22)** and the original rotation, without minimizing the UI. Switch it off to stop and restore anchoring.
 
-- Fishing Rod
-- Golden Fishing Rod
-- Diamond Fishing Rod
-
-The selected rod **must be equipped or in Backpack**. The Auto Fish toggle validates this before starting. When enabled, it equips the selected Tool, anchors the HumanoidRootPart, sets its position to `Vector3.new(-25,76,22)` and its Euler rotation to `(180,-40,180)` degrees, and tries a centre-screen click to cast.
-
-The module listens for `Sound` instances **named exactly `Notify`** (including Tool, Workspace, PlayerGui, SoundService, and dynamically added sounds). When one plays while waiting, it performs the reel click immediately and casts again after **0.3 seconds**. If no `Notify` occurs within **10 seconds**, it unequips/re-equips the rod and retries. If the player equips a different Tool, the selected rod is restored and the cycle restarts.
-
-Turning Auto Fish **off** cancels its loop, disconnects sound listeners, and restores the character's original `HumanoidRootPart.Anchored` state. Character loss or missing rod also stops the loop. The interface minimizes itself on start so automated centre-screen clicks do not hit the console; reopen the console using its title bar to switch the toggle off. The normal `RightShift` shortcut is still available.
-
-**Troubleshooting:** A **Check Fishing Setup** button reports whether the requested rod exists and prints paths of currently found `Notify` sounds to the output console. Actual game internals and the exact executor input functions have not been verified; the module tries VirtualInputManager centre-click, optionally uses `mousemoveabs` with `mouse1click`, also tries `VirtualUser` when available, and finally attempts `Tool:Activate()`. No click method is guaranteed to work in every runtime.
+If fishing stalls, the module retries. Use **Check Fishing Setup** if the rod or sound isn't detected.
 
 ### No Meteors
 
-The **No Meteors** toggle examines existing and newly added Workspace `MeshPart` instances. It only deletes MeshParts with meteor-related names (or inside appropriately named meteor Models/Folders). It deliberately does **not** delete collectible `Meteorite` items or unrelated MeshParts.
-
-This is **client-side deletion only**. It may hide an object without stopping a meteor impact or other server-side effect. If your game's meteor parts have unrelated internal names, the filter will need to be refined after inspecting those objects. It disconnects its listener when switched off.
-
-The selected rod is configuration-persisted. The Auto Fish and No Meteors action toggles are intentionally **not** config-persisted, preventing a loaded profile from visually claiming an operation is running when its loop is inactive.
+**No Meteors** hides matching meteor MeshParts locally. It may not stop server-side effects.
 
 ### Versioned test loader
 
