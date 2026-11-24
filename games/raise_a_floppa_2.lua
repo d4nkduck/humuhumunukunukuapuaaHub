@@ -14,7 +14,7 @@ return function(ctx)
     local tab = ctx.Window:CreateTab({ Name = "FLOPPA 2" })
 
     local RODS = { "Fishing Rod", "Golden Fishing Rod", "Diamond Fishing Rod" }
-    local FISHING_CFRAME = CFrame.new(-25, 76, 22)
+    local FISHING_CFRAME = CFrame.new(-25, 74, 22)
         * CFrame.Angles(math.rad(180), math.rad(-40), math.rad(180))
     local TIMEOUT = 10
     local RECAST_DELAY = 0.3
@@ -36,7 +36,6 @@ return function(ctx)
         nextCastAt = 0,
         anchoredRoot = nil,
         originalAnchored = false,
-        initiallyMinimized = false,
         notifyConnections = {},
         watchedSounds = {},
         lastNotifyAt = 0,
@@ -152,10 +151,6 @@ return function(ctx)
             fishing.watchedSounds[sound] = nil
         end
         restoreAnchor()
-        if fishing.autoMinimized and not ctx.Window.destroyed then
-            ctx.Window:SetMinimized(false)
-        end
-        fishing.autoMinimized = false
         if fishToggle and fishToggle:Get() then fishToggle:Set(false) end
         fishing.stopping = false
         status("OFF")
@@ -332,13 +327,8 @@ return function(ctx)
 
         listenForNotify()
 
-        -- The UI is initially centered. Minimizing stops its buttons from
-        -- capturing synthetic centre-screen fishing clicks.
-        fishing.autoMinimized = not ctx.Window.minimized
-        if fishing.autoMinimized then ctx.Window:SetMinimized(true) end
-
         status("STARTING with " .. choice)
-        note("Auto Fish started with " .. choice .. " (restore window to stop)", "OK")
+        note("Auto Fish started: " .. choice, "OK")
         local epoch = fishing.epoch
         task.spawn(function() runFishing(epoch) end)
     end
@@ -346,13 +336,7 @@ return function(ctx)
     tab:CreateSection("FISHING")
     statusLabel = tab:CreateLabel({ Text = "Auto Fish: OFF" })
     tab:CreateParagraph({
-        Title = "AUTO FISH",
-        Content = "You must own the selected rod. Auto Fish equips it, moves to the fishing position, anchors your character, and reels on the Notify sound. Turn the toggle off to unanchor.",
-        Height = 116
-    })
-
-    tab:CreateParagraph({
-        Title = "ROD SELECTION",
+        Title = "ROD",
         Content = "What rod will you use? (REQUIRED TO BE IN INVENTORY)",
         Height = 70
     })
@@ -415,12 +399,6 @@ return function(ctx)
     })
 
     tab:CreateSection("WORLD")
-    tab:CreateParagraph({
-        Title = "NO METEORS",
-        Content = "Locally removes MeshParts named Meteor (or inside meteor-named objects). Other MeshParts and collectible Meteorite items are left alone. Server-side impacts may still happen.",
-        Height = 105
-    })
-
     local meteorEnabled = false
     local meteorConnection
 
