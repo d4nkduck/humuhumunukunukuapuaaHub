@@ -23,6 +23,10 @@ return function(ctx)
     -- Declare controls before callbacks to preserve correct Luau closure scope.
     local rodPicker
     local fishToggle
+    local statusLabel
+    local function status(message)
+        if statusLabel then statusLabel:SetText("Auto Fish: " .. tostring(message)) end
+    end
 
     local fishing = {
         active = false,
@@ -137,6 +141,7 @@ return function(ctx)
         fishing.autoMinimized = false
         if fishToggle and fishToggle:Get() then fishToggle:Set(false) end
         fishing.stopping = false
+        status("OFF")
         if report then note(reason or "Auto Fish stopped", report) end
     end
 
@@ -170,6 +175,7 @@ return function(ctx)
         if not fishing.active then return end
         fishing.awaiting = true
         fishing.castAt = os.clock()
+        status("Waiting for Notify sound")
         local success, err = clickCenter()
         if not success then
             stopFishing(err, "ERROR")
@@ -183,6 +189,7 @@ return function(ctx)
         if now - fishing.lastNotifyAt < 0.12 then return end
         fishing.lastNotifyAt = now
         fishing.awaiting = false
+        status("Notify heard! Reeling")
 
         -- Reel immediately upon the named Notify sound; next cast in 0.3 s.
         local success, err = clickCenter()
@@ -231,6 +238,7 @@ return function(ctx)
             return false
         end
         fishing.nextCastAt = os.clock() + RECAST_DELAY
+        status("Resetting rod")
         if reason then print("[HumuHub/Floppa2] " .. reason) end
         return true
     end
@@ -305,12 +313,14 @@ return function(ctx)
         fishing.autoMinimized = not ctx.Window.minimized
         if fishing.autoMinimized then ctx.Window:SetMinimized(true) end
 
+        status("STARTING with " .. choice)
         note("Auto Fish started with " .. choice .. " (restore window to stop)", "OK")
         local epoch = fishing.epoch
         task.spawn(function() runFishing(epoch) end)
     end
 
     tab:CreateSection("FISHING")
+    statusLabel = tab:CreateLabel({ Text = "Auto Fish: OFF" })
     tab:CreateParagraph({
         Title = "AUTO FISH",
         Content = "You must own the selected rod. Auto Fish equips it, moves to the fishing position, anchors your character, and reels on the Notify sound. Turn the toggle off to unanchor.",
