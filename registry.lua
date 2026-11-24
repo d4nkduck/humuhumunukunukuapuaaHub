@@ -22,7 +22,7 @@ return {
     Places = {
         [9772878203] = {
             Name = "Raise a Floppa 2",
-            Module = "games/raise_a_floppa_2_v022.lua"
+            Module = "games/raise_a_floppa_2.lua"
         },
     }
 }
