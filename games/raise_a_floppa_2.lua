@@ -9,6 +9,7 @@ return function(ctx)
 
     local Players = game:GetService("Players")
     local SoundService = game:GetService("SoundService")
+    local RunService = game:GetService("RunService")
     local player = Players.LocalPlayer
     local backpack = player:WaitForChild("Backpack")
     local tab = ctx.Window:CreateTab({ Name = "FLOPPA 2" })
@@ -16,7 +17,7 @@ return function(ctx)
     local RODS = { "Fishing Rod", "Golden Fishing Rod", "Diamond Fishing Rod" }
     local FISHING_CFRAME = CFrame.new(-25, 70, 22)
         * CFrame.Angles(math.rad(180), math.rad(-40), math.rad(180))
-    local TIMEOUT = 10
+    local HOOK_TIMEOUT = 2
     local RECAST_DELAY = 0.3
     local CHECK_INTERVAL = 0.05
 
@@ -36,8 +37,8 @@ return function(ctx)
         nextCastAt = 0,
         heldRoot = nil,
         previousAnchored = false,
-        positionForce = nil,
-        rotationForce = nil,
+        cframeConnection = nil,
+        hookReady = false,
         notifyConnections = {},
         watchedSounds = {},
         lastNotifyAt = 0,
@@ -70,16 +71,11 @@ return function(ctx)
         return nil
     end
 
-    -- Physics-based anti-move: BodyPosition holds the spot, BodyGyro
-    -- holds facing. The HumanoidRootPart stays UNANCHORED for tool animations.
+    -- Maintain the exact fishing CFrame each frame without anchoring the rig.
     local function releaseHold()
-        if fishing.positionForce then
-            fishing.positionForce:Destroy()
-            fishing.positionForce = nil
-        end
-        if fishing.rotationForce then
-            fishing.rotationForce:Destroy()
-            fishing.rotationForce = nil
+        if fishing.cframeConnection then
+            fishing.cframeConnection:Disconnect()
+            fishing.cframeConnection = nil
         end
         if fishing.heldRoot and fishing.heldRoot.Parent then
             fishing.heldRoot.Anchored = fishing.previousAnchored
@@ -88,45 +84,18 @@ return function(ctx)
     end
 
     local function applyHold(root)
-        if fishing.heldRoot == root
-            and fishing.positionForce and fishing.positionForce.Parent
-            and fishing.rotationForce and fishing.rotationForce.Parent then
-            -- Keep the physics active even if another local script anchors us.
-            if root.Anchored then root.Anchored = false end
-            return
-        end
-
-        if fishing.heldRoot ~= root then
-            releaseHold()
-            fishing.heldRoot = root
-            fishing.previousAnchored = root.Anchored
-        else
-            if fishing.positionForce then fishing.positionForce:Destroy() end
-            if fishing.rotationForce then fishing.rotationForce:Destroy() end
-        end
-
-        root.CFrame = FISHING_CFRAME
+        if fishing.heldRoot == root and fishing.cframeConnection then return end
+        releaseHold()
+        fishing.heldRoot = root
+        fishing.previousAnchored = root.Anchored
         root.Anchored = false
-        root.AssemblyLinearVelocity = Vector3.zero
-        root.AssemblyAngularVelocity = Vector3.zero
-
-        local position = Instance.new("BodyPosition")
-        position.Name = "HumuFishPosition"
-        position.Position = FISHING_CFRAME.Position
-        position.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-        position.P = 100000
-        position.D = 10000
-        position.Parent = root
-        fishing.positionForce = position
-
-        local rotation = Instance.new("BodyGyro")
-        rotation.Name = "HumuFishRotation"
-        rotation.CFrame = FISHING_CFRAME
-        rotation.MaxTorque = Vector3.new(1e9, 1e9, 1e9)
-        rotation.P = 100000
-        rotation.D = 10000
-        rotation.Parent = root
-        fishing.rotationForce = rotation
+        fishing.cframeConnection = RunService.Heartbeat:Connect(function()
+            if not fishing.active or not root.Parent or player.Character ~= root.Parent then return end
+            if root.Anchored then root.Anchored = false end
+            root.CFrame = FISHING_CFRAME
+            root.AssemblyLinearVelocity = Vector3.zero
+            root.AssemblyAngularVelocity = Vector3.zero
+        end)
     end
 
     local function clickCenter()
@@ -184,6 +153,7 @@ return function(ctx)
         fishing.active = false
         fishing.epoch += 1
         fishing.awaiting = false
+        fishing.hookReady = false
         for _, connection in ipairs(fishing.notifyConnections) do
             pcall(function() connection:Disconnect() end)
         end
@@ -208,7 +178,7 @@ return function(ctx)
         local tool = findRod(choice, char)
         if not tool then return false, choice .. " is not in Backpack or equipped" end
 
-        -- Force-based hold rather than anchoring the character.
+        -- Keep the character fixed by updating its CFrame every Heartbeat.
         applyHold(root)
 
         local competingTool = false
@@ -226,11 +196,21 @@ return function(ctx)
         return true
     end
 
+    local function equippedHook()
+        local character = player.Character
+        local tool = character and character:FindFirstChild(selectedRod())
+        if not tool or not tool:IsA("Tool") then return nil end
+        local hook = tool:FindFirstChild("Hook", true)
+        if hook and hook:IsA("MeshPart") then return hook end
+        return nil
+    end
+
     local function cast()
         if not fishing.active then return end
         fishing.awaiting = true
+        fishing.hookReady = false
         fishing.castAt = os.clock()
-        status("Waiting for Notify sound")
+        status("Waiting for Hook")
         local success, err = clickCenter()
         if not success then
             stopFishing(err, "ERROR")
@@ -244,6 +224,7 @@ return function(ctx)
         if now - fishing.lastNotifyAt < 0.12 then return end
         fishing.lastNotifyAt = now
         fishing.awaiting = false
+        fishing.hookReady = false
         status("Notify heard! Reeling")
 
         -- Reel immediately upon the named Notify sound; next cast in 0.3 s.
@@ -294,6 +275,7 @@ return function(ctx)
 
     local function resetRod(reason)
         fishing.awaiting = false
+        fishing.hookReady = false
         local ok, err = equipSelected(true)
         if not ok then
             stopFishing(err, "ERROR")
@@ -330,17 +312,20 @@ return function(ctx)
 
             if otherEquipped or not (selected and selected:IsA("Tool")) then
                 if not resetRod("Re-equipping selected rod") then break end
-            elseif root ~= fishing.heldRoot
-                or not fishing.positionForce or not fishing.positionForce.Parent
-                or not fishing.rotationForce or not fishing.rotationForce.Parent
-                or root.Anchored then
+            elseif root ~= fishing.heldRoot or not fishing.cframeConnection then
                 applyHold(root)
             end
 
             local now = os.clock()
             if fishing.active and fishing.epoch == epoch then
-                if fishing.awaiting and (now - fishing.castAt >= TIMEOUT) then
-                    resetRod("No Notify sound after 10s; retrying")
+                if fishing.awaiting and not fishing.hookReady then
+                    local hook = equippedHook()
+                    if hook and hook.Anchored then
+                        fishing.hookReady = true
+                        status("Hook anchored; waiting for Notify")
+                    elseif now - fishing.castAt >= HOOK_TIMEOUT then
+                        resetRod("Hook did not anchor in 2s; retrying")
+                    end
                 elseif not fishing.awaiting and now >= fishing.nextCastAt then
                     cast()
                 end
@@ -362,6 +347,7 @@ return function(ctx)
         fishing.active = true
         fishing.epoch += 1
         fishing.awaiting = false
+        fishing.hookReady = false
         fishing.lastNotifyAt = 0
         fishing.nextCastAt = 0
 
