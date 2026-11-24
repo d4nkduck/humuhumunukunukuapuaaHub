@@ -112,6 +112,18 @@ return function(ctx)
             if sent then return true end
         end
 
+        -- Optional VirtualUser fallback for clients that expose it.
+        local okVirtualUser, virtualUser = pcall(function()
+            return game:GetService("VirtualUser")
+        end)
+        if okVirtualUser and virtualUser then
+            local sent = pcall(function()
+                virtualUser:Button1Down(center, camera.CFrame)
+                virtualUser:Button1Up(center, camera.CFrame)
+            end)
+            if sent then return true end
+        end
+
         -- Tool activation is the in-client equivalent if input injection is unavailable.
         local char = player.Character
         local equipped = findRod(selectedRod(), char)
