@@ -14,7 +14,7 @@ return function(ctx)
     local tab = ctx.Window:CreateTab({ Name = "FLOPPA 2" })
 
     local RODS = { "Fishing Rod", "Golden Fishing Rod", "Diamond Fishing Rod" }
-    local FISHING_CFRAME = CFrame.new(-25, 74, 22)
+    local FISHING_CFRAME = CFrame.new(-25, 71, 22)
         * CFrame.Angles(math.rad(180), math.rad(-40), math.rad(180))
     local TIMEOUT = 10
     local RECAST_DELAY = 0.3

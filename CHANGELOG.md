@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2-alpha — Fishing height adjustment
+
+- Change the Raise a Floppa 2 fishing position to (-25, 71, 22)
+- Keep the UI open while fishing
+- Publish a fresh loader → registry → module URL chain to avoid cached older builds
+- Show `FLOPPA 2 | v0.2.2` in the game tab
+
 ## 0.2.1-alpha — Fishing position and cache-bypass hotfix
 
 - Keep the hub visible when Auto Fish starts; no automatic minimizing
