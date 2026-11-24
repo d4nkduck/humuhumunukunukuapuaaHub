@@ -1,32 +1,50 @@
--- humuhumunukunukuapuaaHub | loader v0.2.2-alpha
--- Main public entry point for Lua environments supporting game:HttpGet + loadstring.
--- This loader never guesses IDs or runs a game module on an unsupported experience.
+-- humuhumunukunukuapuaaHub | UNIVERSAL LOADER
+-- Permanent entry point: never change this URL when adding or updating games.
+-- Requires game:HttpGet and loadstring (not available in normal Studio LocalScripts).
 
-local HUB_VERSION = "0.2.2-alpha"
+local HUB_VERSION = "universal"
 local BASE = "https://raw.githubusercontent.com/d4nkduck/humuhumunukunukuapuaaHub/main/"
-local REEFFISH_URL = "https://raw.githubusercontent.com/d4nkduck/reefFish-UI-Lib/main/dist/reefFish-v0.3.lua"
+local REEFFISH_URL = "https://raw.githubusercontent.com/d4nkduck/reefFish-UI-Lib/main/dist/reefFish.lua"
+-- Vary the request URL on each run to avoid old game-script CDN caches.
+local REQUEST_NONCE = tostring(DateTime.now().UnixTimestampMillis) .. "_" .. tostring(math.random(100000,999999))
 
 local function log(message)
     print("[HumuHub " .. HUB_VERSION .. "] " .. tostring(message))
 end
 
 local function loadRemote(url, name)
-    assert(type(loadstring) == "function", "This loader requires loadstring; use ModuleScripts with require() in Roblox Studio")
-    local ok, source = pcall(function()
-        return game:HttpGet(url)
-    end)
-    if not ok or type(source) ~= "string" or #source == 0 then
-        error("Unable to download " .. tostring(name) .. ": " .. tostring(source))
+    assert(type(loadstring) == "function",
+        "This loader needs loadstring. Use ModuleScripts with require() in Roblox Studio.")
+    local separator = url:find("?", 1, true) and "&" or "?"
+    local freshUrl = url .. separator .. "humu_cache=" .. REQUEST_NONCE
+    local chunk
+    local lastError
+
+    -- Prefer a fresh fetch; plain URL is only a fallback if fetching or
+    -- compiling the cache-busted version is unsupported by the client.
+    for _, candidate in ipairs({freshUrl, url}) do
+        local downloaded, source = pcall(function()
+            return game:HttpGet(candidate)
+        end)
+        if downloaded and type(source) == "string" and #source > 0 then
+            local compiled, compileError = loadstring(source)
+            if type(compiled) == "function" then
+                chunk = compiled
+                break
+            end
+            lastError = compileError
+        else
+            lastError = source
+        end
     end
 
-    local chunk, compileError = loadstring(source)
-    if type(chunk) ~= "function" then
-        error("Failed to compile " .. tostring(name) .. ": " .. tostring(compileError))
+    if not chunk then
+        error("Failed to fetch or compile " .. tostring(name) .. ": " .. tostring(lastError))
     end
 
     local ran, value = pcall(chunk)
     if not ran then
-        error("Failed to initialise " .. tostring(name) .. ": " .. tostring(value))
+        error("Failed to initialize " .. tostring(name) .. ": " .. tostring(value))
     end
     return value
 end
@@ -57,7 +75,7 @@ local function launch()
     local gameId, placeId = game.GameId, game.PlaceId
     log("Checking GameId=" .. tostring(gameId) .. " PlaceId=" .. tostring(placeId))
 
-    local registry = loadHubFile("registry-v022.lua")
+    local registry = loadHubFile("registry.lua")
     local entry, matchedBy = getEntry(registry, gameId, placeId)
     if entry then
         assert(type(entry) == "table" and type(entry.Module) == "string", "Invalid registry entry")
