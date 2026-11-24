@@ -327,8 +327,13 @@ return function(ctx)
         Height = 116
     })
 
+    tab:CreateParagraph({
+        Title = "ROD SELECTION",
+        Content = "What rod will you use? (REQUIRED TO BE IN INVENTORY)",
+        Height = 70
+    })
     rodPicker = tab:CreateDropdown({
-        Name = "What rod will you use? (REQUIRED TO BE IN INVENTORY)",
+        Name = "Rod from inventory",
         Flag = "floppa2.rod",
         Options = RODS,
         Default = "Fishing Rod",
