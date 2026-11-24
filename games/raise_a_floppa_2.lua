@@ -468,6 +468,7 @@ return function(ctx)
                 note("Local meteor filter disabled")
                 return
             end
+            if meteorEnabled then return end
             meteorEnabled = true
             for _, instance in ipairs(workspace:GetDescendants()) do
                 removeMeteor(instance)
