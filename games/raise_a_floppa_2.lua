@@ -9,7 +9,6 @@ return function(ctx)
 
     local Players = game:GetService("Players")
     local SoundService = game:GetService("SoundService")
-    local RunService = game:GetService("RunService")
     local player = Players.LocalPlayer
     local backpack = player:WaitForChild("Backpack")
     local tab = ctx.Window:CreateTab({ Name = "FLOPPA 2" })
@@ -20,6 +19,10 @@ return function(ctx)
     local TIMEOUT = 10
     local RECAST_DELAY = 0.3
     local CHECK_INTERVAL = 0.05
+
+    -- Declare controls before callbacks to preserve correct Luau closure scope.
+    local rodPicker
+    local fishToggle
 
     local fishing = {
         active = false,
@@ -269,9 +272,6 @@ return function(ctx)
         end
     end
 
-    local rodPicker
-    local fishToggle
-
     local function startFishing()
         if fishing.active then return end
         local char = player.Character
@@ -327,8 +327,7 @@ return function(ctx)
 
     fishToggle = tab:CreateToggle({
         Name = "Auto Fish",
-        Flag = "floppa2.autoFish",
-        Default = false,
+         Default = false,
         Callback = function(on)
             if on then startFishing()
             else stopFishing("Auto Fish stopped; character unanchored", "INFO") end
@@ -382,8 +381,7 @@ return function(ctx)
 
     tab:CreateToggle({
         Name = "No Meteors",
-        Flag = "floppa2.noMeteors",
-        Default = false,
+         Default = false,
         Callback = function(on)
             if not on then
                 stopMeteors()
