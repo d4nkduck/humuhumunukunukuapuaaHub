@@ -1,6 +1,6 @@
 # humuhumunukunukuāpuaʻaHub 🐟
 
-**Version:** 0.2.1-alpha  
+**Version:** 0.2.2-alpha  
 **Type:** Game-aware Roblox Luau debugging hub  
 **UI library:** [reefFish UI Lib](https://github.com/d4nkduck/reefFish-UI-Lib) v0.3.0-alpha
 
@@ -25,16 +25,16 @@ The remote loading pattern is *not* supported by ordinary Roblox Studio LocalScr
 ```text
 humuhumunukunukuapuaaHub/
 ├── loader.lua                  # Public central entry point and error handling
-├── loader-v021.lua             # Fresh v0.2.1 loader (avoids old path caching)
+├── loader-v022.lua             # Fresh v0.2.2 loader (avoids old path caching)
 ├── loader-v0.2.lua             # Previous loader build
 ├── registry.lua                # Latest experience/PlaceId routing table
-├── registry-v021.lua           # Fresh routing file for v0.2.1
+├── registry-v022.lua           # Fresh routing file for v0.2.2
 ├── shared/
 │   └── bootstrap.lua          # ReefFish window, system tab and cleanup
 ├── games/
 │   ├── _template.lua          # Example debug module (not registered)
 │   ├── raise_a_floppa_2.lua   # Latest original game module
-│   └── raise_a_floppa_2_v021.lua  # Freshly named v0.2.1 module
+│   └── raise_a_floppa_2_v022.lua  # Freshly named v0.2.2 module
 ├── examples/
 │   └── preview-template.lua   # Manually test template without registering a game
 └── README.md
@@ -43,12 +43,12 @@ humuhumunukunukuapuaaHub/
 ## Supported game: Raise a Floppa 2
 
 **PlaceId:** `9772878203`  
-**Module:** `games/raise_a_floppa_2_v021.lua`  
-**Route:** `registry-v021.lua → Places[9772878203]` (no experience-wide GameId rule)
+**Module:** `games/raise_a_floppa_2_v022.lua`  
+**Route:** `registry-v022.lua → Places[9772878203]` (no experience-wide GameId rule)
 
 ### Auto Fish
 
-Choose **Fishing Rod**, **Golden Fishing Rod**, or **Diamond Fishing Rod** from your inventory, then enable **Auto Fish**. Your character fishes at **(-25, 74, 22)** and the original rotation, without minimizing the UI. Switch it off to stop and restore anchoring.
+Choose **Fishing Rod**, **Golden Fishing Rod**, or **Diamond Fishing Rod** from your inventory, then enable **Auto Fish**. Your character fishes at **(-25, 71, 22)** and the original rotation, without minimizing the UI. Switch it off to stop and restore anchoring.
 
 If fishing stalls, the module retries. Use **Check Fishing Setup** if the rod or sound isn't detected.
 
@@ -60,11 +60,11 @@ If fishing stalls, the module retries. Use **Check Fishing Setup** if the rod or
 
 ```lua
 loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/d4nkduck/humuhumunukunukuapuaaHub/main/loader-v021.lua"
+    "https://raw.githubusercontent.com/d4nkduck/humuhumunukunukuapuaaHub/main/loader-v022.lua"
 ))()
 ```
 
-The v0.2.1 loader uses new paths for both the registry and Raise a Floppa 2 module to avoid stale GitHub raw-file caches. The game tab will read `FLOPPA 2 | v0.2.1`. Fishing stays visible (no automatic minimize), and the fishing height is `-25, 74, 22`.
+The v0.2.2 loader uses new paths for both the registry and Raise a Floppa 2 module to avoid stale GitHub raw-file caches. The game tab will read `FLOPPA 2 | v0.2.2`. Fishing stays visible (no automatic minimize), and the fishing height is `-25, 74, 22`.
 
 ## Game detection
 
