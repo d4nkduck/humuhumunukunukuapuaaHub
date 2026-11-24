@@ -1,5 +1,11 @@
 # Changelog
 
+## Auto Fish Hook check
+
+- Constant CFrame hold replaces physics forces
+- Retry if the selected rod's Hook MeshPart has not anchored within 2 seconds
+- Keep the universal loader unchanged
+
 ## Fishing anti-move update
 
 - Replace root anchoring with BodyPosition and BodyGyro physics hold
