@@ -1,8 +1,8 @@
--- humuhumunukunukuapuaaHub | loader v0.1.0-alpha
+-- humuhumunukunukuapuaaHub | loader v0.2.0-alpha
 -- Main public entry point for Lua environments supporting game:HttpGet + loadstring.
 -- This loader never guesses IDs or runs a game module on an unsupported experience.
 
-local HUB_VERSION = "0.1.0-alpha"
+local HUB_VERSION = "0.2.0-alpha"
 local BASE = "https://raw.githubusercontent.com/d4nkduck/humuhumunukunukuapuaaHub/main/"
 local REEFFISH_URL = "https://raw.githubusercontent.com/d4nkduck/reefFish-UI-Lib/main/dist/reefFish-v0.3.lua"
 

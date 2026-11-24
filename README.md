@@ -1,10 +1,10 @@
 # humuhumunukunukuāpuaʻaHub 🐟
 
-**Version:** 0.1.0-alpha  
+**Version:** 0.2.0-alpha  
 **Type:** Game-aware Roblox Luau debugging hub  
 **UI library:** [reefFish UI Lib](https://github.com/d4nkduck/reefFish-UI-Lib) v0.3.0-alpha
 
-The central hub detects the running Roblox experience, selects an exact game/place module from a registry, and opens a consistent ReefFish-powered debug window. It starts with no game-specific modules registered, so unknown games cannot accidentally receive scripts intended for another experience.
+The central hub detects the running Roblox experience, selects an exact game/place module from a registry, and opens a consistent ReefFish-powered debug window. The first registered module is Raise a Floppa 2; unknown games still cannot accidentally receive a script intended for a different experience.
 
 ## One-line central loader
 
@@ -16,7 +16,7 @@ loadstring(game:HttpGet(
 ))()
 ```
 
-**No real GameIds have been registered yet.** Running the loader now should open an `UNSUPPORTED` system panel displaying the detected IDs; it will not run `games/_template.lua` automatically.
+**Supported game:** [Raise a Floppa 2](https://www.roblox.com/games/9772878203/raise-a-floppa-2), matched by **PlaceId `9772878203`**. Other places still show an `UNSUPPORTED` system panel; the template is never loaded automatically.
 
 The remote loading pattern is *not* supported by ordinary Roblox Studio LocalScripts. For Studio, use the ModuleScript-based pattern below instead.
 
@@ -25,15 +25,57 @@ The remote loading pattern is *not* supported by ordinary Roblox Studio LocalScr
 ```text
 humuhumunukunukuapuaaHub/
 ├── loader.lua                  # Public central entry point and error handling
+├── loader-v0.2.lua             # Version-specific loader for cache diagnosis
 ├── registry.lua                # Experience/PlaceId routing table
 ├── shared/
 │   └── bootstrap.lua          # ReefFish window, system tab and cleanup
 ├── games/
-│   └── _template.lua          # Example debug module (not registered)
+│   ├── _template.lua          # Example debug module (not registered)
+│   └── raise_a_floppa_2.lua   # First registered game module
 ├── examples/
 │   └── preview-template.lua   # Manually test template without registering a game
 └── README.md
 ```
+
+## Supported game: Raise a Floppa 2
+
+**PlaceId:** `9772878203`  
+**Module:** `games/raise_a_floppa_2.lua`  
+**Route:** `registry.lua → Places[9772878203]` (no experience-wide GameId rule)
+
+### Auto Fish
+
+The FLOPPA 2 tab contains a required rod-selection prompt and dropdown:
+
+- Fishing Rod
+- Golden Fishing Rod
+- Diamond Fishing Rod
+
+The selected rod **must be equipped or in Backpack**. The Auto Fish toggle validates this before starting. When enabled, it equips the selected Tool, anchors the HumanoidRootPart, sets its position to `Vector3.new(-25,76,22)` and its Euler rotation to `(180,-40,180)` degrees, and tries a centre-screen click to cast.
+
+The module listens for `Sound` instances **named exactly `Notify`** (including Tool, Workspace, PlayerGui, SoundService, and dynamically added sounds). When one plays while waiting, it performs the reel click immediately and casts again after **0.3 seconds**. If no `Notify` occurs within **10 seconds**, it unequips/re-equips the rod and retries. If the player equips a different Tool, the selected rod is restored and the cycle restarts.
+
+Turning Auto Fish **off** cancels its loop, disconnects sound listeners, and restores the character's original `HumanoidRootPart.Anchored` state. Character loss or missing rod also stops the loop. The interface minimizes itself on start so automated centre-screen clicks do not hit the console; reopen the console using its title bar to switch the toggle off. The normal `RightShift` shortcut is still available.
+
+**Troubleshooting:** A **Check Fishing Setup** button reports whether the requested rod exists and prints paths of currently found `Notify` sounds to the output console. Actual game internals and the exact executor input functions have not been verified; the module tries VirtualInputManager centre-click, optionally uses `mousemoveabs` with `mouse1click`, also tries `VirtualUser` when available, and finally attempts `Tool:Activate()`. No click method is guaranteed to work in every runtime.
+
+### No Meteors
+
+The **No Meteors** toggle examines existing and newly added Workspace `MeshPart` instances. It only deletes MeshParts with meteor-related names (or inside appropriately named meteor Models/Folders). It deliberately does **not** delete collectible `Meteorite` items or unrelated MeshParts.
+
+This is **client-side deletion only**. It may hide an object without stopping a meteor impact or other server-side effect. If your game's meteor parts have unrelated internal names, the filter will need to be refined after inspecting those objects. It disconnects its listener when switched off.
+
+The selected rod is configuration-persisted. The Auto Fish and No Meteors action toggles are intentionally **not** config-persisted, preventing a loaded profile from visually claiming an operation is running when its loop is inactive.
+
+### Versioned test loader
+
+```lua
+loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/d4nkduck/humuhumunukunukuapuaaHub/main/loader-v0.2.lua"
+))()
+```
+
+Versioned URLs help distinguish this release from cached earlier loader content. Test on an authorized client and report the status label or output message if an action does not work.
 
 ## Game detection
 
@@ -51,7 +93,7 @@ print("GameId:", game.GameId)
 print("PlaceId:", game.PlaceId)
 ```
 
-## How to register the first game
+## How to register another game
 
 1. Copy `games/_template.lua` to an appropriately named file, for example `games/my_test_game.lua`.
 2. Put your own debugging controls into the new file. Each module returns `function(ctx) ... end` and receives `ctx.Window`, `ctx.ReefFish`, `ctx.GameId`, `ctx.PlaceId` and logging/cleanup helpers.
@@ -142,7 +184,7 @@ local ctx = Bootstrap.Start(UI, {
     Match = "Manual test",
     GameId = game.GameId,
     PlaceId = game.PlaceId,
-    HubVersion = "0.1.0-alpha"
+    HubVersion = "0.2.0-alpha"
 })
 Demo(ctx)
 ```
