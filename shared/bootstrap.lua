@@ -9,7 +9,7 @@ function Bootstrap.Start(ReefFish, info)
     local window = ReefFish:CreateWindow({
         Title = "HUMUHUMU HUB",
         Theme = "MatrixInverse",
-        BorderThickness = 11
+        BorderThickness = 5
     })
 
     local context = {
