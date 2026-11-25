@@ -83,14 +83,17 @@ local function launch()
             "Game module must use a games/*.lua path")
     end
 
+    log("Fetching reefFish UI Lib...")
     local ReefFish = loadRemote(REEFFISH_URL, "reefFish UI Lib")
     assert(type(ReefFish) == "table" and type(ReefFish.CreateWindow) == "function",
         "reefFish returned an invalid library")
+    log("reefFish ready: " .. tostring(ReefFish.Version))
 
     local bootstrap = loadHubFile("shared/bootstrap.lua")
     assert(type(bootstrap) == "table" and type(bootstrap.Start) == "function",
         "Invalid hub bootstrap")
 
+    log("Creating HumuHub window...")
     local ctx = bootstrap.Start(ReefFish, {
         GameId = gameId,
         PlaceId = placeId,
@@ -100,6 +103,7 @@ local function launch()
         HubVersion = HUB_VERSION
     })
 
+    log("HumuHub window created")
     if not entry then
         ctx:Notify("No game-specific module registered for this experience", "WARN")
         log("Unsupported game. Add this GameId or PlaceId to registry.lua to enable a module.")
